@@ -7,7 +7,7 @@ import "../guest/style/Login.css";
 import {loginUser, logout} from "../../redux/slices/authSlice";
 import {useDispatch, useSelector} from "react-redux";
 import {unwrapResult} from "@reduxjs/toolkit";
-import bgImage from "../../assets/images/bg-login.jpg";
+import bgImage from "../../assets/images/bg-login.webp";
 import toastr from "toastr";
 import slideService from "../../api/slideService";
 import userService from "../../api/userService";

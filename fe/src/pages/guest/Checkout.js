@@ -20,7 +20,7 @@ const Checkout = () => {
     });
 
     console.info("===========[] ===========[user] : ", user);
-
+    const [currentPoint, setCurrentPoint] = useState(0); // Điểm hiện có từ API
     const [cartItems, setCartItems] = useState([]);
     const [paymentMethod, setPaymentMethod] = useState('');
     const [discountCode, setDiscountCode] = useState('');
@@ -43,6 +43,7 @@ const Checkout = () => {
     useEffect(() => {
         getLists().then(r => {
         });
+        getPoint();
         fetchTagsWithParams().then(r => {
         });
         fetchVouchers().then(r => {
@@ -70,6 +71,15 @@ const Checkout = () => {
             const response = await apiOrderService.getListsCartItem();
             console.info("===========[data] ===========[response] : ", response.data);
             setCartItems(response.data);
+        } catch (error) {
+            console.error("Error fetching product:", error);
+        }
+    }
+    const getPoint = async () => {
+        try {
+            const response = await apiOrderService.showPoint();
+            console.info("===========[data] ===========[point] : ", response.data);
+            setCurrentPoint(response.data);
         } catch (error) {
             console.error("Error fetching product:", error);
         }
@@ -137,7 +147,7 @@ const Checkout = () => {
 
     // Tính tổng tiền cuối cùng
     const calculateTotal = (subtotal, tax, shippingFee) => {
-        return (subtotal + tax + shippingFee - discountAmount - disCountPoint + subtotal*10/100) > 0 ? (subtotal + tax + shippingFee - discountAmount - disCountPoint) : 0;
+        return (subtotal + tax + shippingFee - discountAmount - disCountPoint + payLater) > 0 ? (subtotal + tax + shippingFee - discountAmount - disCountPoint + payLater) : 0;
     };
 
     // Xử lý khi người dùng nhấn "Áp dụng" mã giảm giá
@@ -231,19 +241,27 @@ const Checkout = () => {
                         </Form.Group>
                         <Form.Group className="mb-3">
                             <Form.Label>Sử dụng điểm tích lũy</Form.Label>
-                            <Form.Control
-                                type="number"
-                                value={point}
-                                onChange={(e) => {
-                                    // Kiểm tra e.target.value có hợp lệ không
-                                    if (e.target && e.target.value !== undefined) {
-                                        setPoint(Number(e.target.value));
-                                        handleApplyDiscountPoint(e.target.value);
-                                    }
-                                }}
-                                placeholder="Nhập số điểm bạn muốn sử dụng"
-                                min="0"
-                            />
+                            <div style={{display: "flex", alignItems: "center"}}>
+                                {/* Input cho phép nhập điểm muốn sử dụng */}
+                                <Form.Control
+                                    type="number"
+                                    value={point}
+                                    onChange={(e) => {
+                                        if (e.target && e.target.value !== undefined) {
+                                            setPoint(Number(e.target.value));
+                                            handleApplyDiscountPoint(e.target.value);
+                                        }
+                                    }}
+                                    placeholder="Nhập số điểm bạn muốn sử dụng"
+                                    min="0"
+                                    style={{flex: 1, marginRight: "10px"}}
+                                />
+
+                                {/* Hiển thị điểm hiện có */}
+                                <span style={{whiteSpace: "nowrap", fontWeight: "bold"}}>
+                                    Điểm hiện có: {currentPoint}
+                                </span>
+                            </div>
                         </Form.Group>
                         <h4>Phương thức thanh toán</h4>
                         <Form.Group className="mb-3">
@@ -256,7 +274,11 @@ const Checkout = () => {
                                 ]}
                                 onChange={(selectedOption) => {
                                     handlePaymentChange(selectedOption.value)
-                                    setPaylater(subtotal* 10/100)
+                                    if (selectedOption.value === "PAY_LATER") {
+                                        setPaylater(subtotal * 10 / 100);
+                                    } else {
+                                        setPaylater(0); // Reset giá trị nếu không phải PAYLATER
+                                    }
                                 }}
                                 placeholder="Chọn phương thức thanh toán"
                                 defaultValue={{value: 'COD', label: 'Thanh toán khi nhận hàng (COD)'}}

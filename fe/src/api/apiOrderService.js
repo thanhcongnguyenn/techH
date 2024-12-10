@@ -1,4 +1,5 @@
 import apiHelper from '../api/apiHelper';
+import {id} from "date-fns/locale";
 
 const apiOrderService = {
     add: (data) => {
@@ -53,6 +54,9 @@ const apiOrderService = {
     },
     addPayLater: (id) => {
         return apiHelper.post(`client/order/payLater/${id}`);
+    },
+    showPoint:() =>{
+        return apiHelper.get(`client/order/getPoint`);
     }
 };
 

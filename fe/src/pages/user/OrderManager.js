@@ -144,11 +144,12 @@ const OrderManager = () => {
                                 {selectedStatus || "Lọc theo trạng thái"}
                             </Dropdown.Toggle>
                             <Dropdown.Menu>
-                                <Dropdown.Item eventKey="PENDING">PENDING</Dropdown.Item>
-                                <Dropdown.Item eventKey="CONFIRMED">CONFIRMED</Dropdown.Item>
-                                <Dropdown.Item eventKey="SHIPPED">SHIPPED</Dropdown.Item>
-                                <Dropdown.Item eventKey="DELIVERED">DELIVERED</Dropdown.Item>
-                                <Dropdown.Item eventKey="CANCELLED">CANCELLED</Dropdown.Item>
+                                <Dropdown.Item eventKey="PENDING">Pending</Dropdown.Item>
+                                <Dropdown.Item eventKey="CONFIRMED">Confirmed</Dropdown.Item>
+                                <Dropdown.Item eventKey="SHIPPED">Shipper</Dropdown.Item>
+                                <Dropdown.Item eventKey="DELIVERED">Delivered</Dropdown.Item>
+                                <Dropdown.Item eventKey="CANCELLED">Cancelled</Dropdown.Item>
+                                <Dropdown.Item eventKey="PAY_LATER">Pay later</Dropdown.Item>
                                 <Dropdown.Item eventKey="">Tất cả</Dropdown.Item>
                             </Dropdown.Menu>
                         </Dropdown>
@@ -161,12 +162,13 @@ const OrderManager = () => {
                             <th>Tổng tiền</th>
                             <th>PT Thanh toán</th>
                             <th>Trạng thái</th>
+                            <th>Trạng thái thanh toán</th>
                             <th>Thao tác</th>
                         </tr>
                         </thead>
                         <tbody>
                         {orders.map((order, idx) => (
-                            <tr key={order.id} style={{ cursor: 'pointer' }}>
+                            <tr key={order.id} style={{cursor: 'pointer'}}>
                                 <td onClick={() => handleOrderClick(order)}>{order.id}</td>
                                 <td onClick={() => handleOrderClick(order)}>{order.deliveryInfo}</td>
                                 <td onClick={() => handleOrderClick(order)}>{formatCurrency(order.totalAmount)}</td>
@@ -174,6 +176,7 @@ const OrderManager = () => {
                                 <td onClick={() => handleOrderClick(order)}>
                                     <span className={`text-${getVariant(order.status)}`}>{order.status}</span>
                                 </td>
+                                <td>{order.paymentStatus === "true" ? 'Đã thanh toán' : 'Chưa thanh toán'}</td>
                                 <td>
                                     {/*<Button*/}
                                     {/*    size="sm"*/}
@@ -183,17 +186,17 @@ const OrderManager = () => {
                                     {/*>*/}
                                     {/*    <FaEdit />*/}
                                     {/*</Button>*/}
-                                    {order.status === "PENDING" &&  (
+                                    {order.status === "PENDING" && (
                                         <>
                                             <Button
-                                                style={{ padding: '2px', fontSize: '10px'}}
+                                                style={{padding: '2px', fontSize: '10px'}}
                                                 size="sm"
                                                 className="ms-2"
                                                 variant="danger"
                                                 onClick={() => handleDeleteData(order)}
                                                 title="Huỷ đơn"
                                             >
-                                                <FaTrash /> Huỷ đơn
+                                                <FaTrash/> Huỷ đơn
                                             </Button>
                                             {/*<Button*/}
                                             {/*    style={{ padding: '2px', fontSize: '10px'}}*/}
@@ -209,26 +212,26 @@ const OrderManager = () => {
                                     )}
                                     {order.status === "SHIPPED" && (
                                         <Button
-                                            style={{ padding: '2px', fontSize: '10px'}}
+                                            style={{padding: '2px', fontSize: '10px'}}
                                             size="sm"
                                             className="ms-2"
                                             variant="success"
                                             onClick={() => handleFaHandshakeData(order)}
                                             title="Đã nhận hàng"
                                         >
-                                            <FaHandshake /> Đã nhận hàng
+                                            <FaHandshake/> Đã nhận hàng
                                         </Button>
                                     )}
                                     {order.totalAmount > order.amountPaid && order.status === "DELIVERED" && order?.paymentMethod == "PAY_LATER" && (
                                         <Button
-                                            style={{ padding: '2px', fontSize: '10px'}}
+                                            style={{padding: '2px', fontSize: '10px'}}
                                             size="sm"
                                             className="ms-2"
                                             variant="primary"
                                             onClick={() => handlePayLaterData(order)}
                                             title="Trả góp"
                                         >
-                                            <FaCoins /> Trả góp
+                                            <FaCoins/> Trả góp
                                         </Button>
                                     )}
                                 </td>

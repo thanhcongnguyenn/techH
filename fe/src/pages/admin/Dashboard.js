@@ -8,6 +8,8 @@ import {FaDatabase, FaPencilAlt, FaUser} from "react-icons/fa";
 import {FaCartShopping, FaPencil} from "react-icons/fa6";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import * as XLSX from "xlsx";
+import {saveAs} from "file-saver";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -35,7 +37,8 @@ const AdminDashboard = () => {
     const currentYear = new Date().getFullYear();
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [selectedMonth, setSelectedMonth] = useState(new Date());
-
+    const [revenueDataDayli, setRevenueDataDayli] = useState([]);
+    const [revenueDataMonthli, setRevenueDataMonthli] = useState([]);
     useEffect(() => {
         // Gọi các hàm để lấy dữ liệu cần thiết
         fetchStatistics();
@@ -68,6 +71,7 @@ const AdminDashboard = () => {
         try {
 
             const response = await dashboardService.getFetchMonthlyRevenue(year);
+            setRevenueDataMonthli(response.data);
             // Format dữ liệu từ API
             const formattedData = {
                 labels: response.data.map((item) => item.date), // Trích xuất tháng
@@ -110,7 +114,7 @@ const AdminDashboard = () => {
             };
 
             const response = await dashboardService.getFetchDailyRevenue(params);
-
+            setRevenueDataDayli(response.data);
             console.info("===========[getFetchDailyRevenue] ===========[] : ", response);
 
             // Format dữ liệu từ API để khớp với cấu trúc biểu đồ
@@ -161,6 +165,47 @@ const AdminDashboard = () => {
     const handleMonthChange = (date) => {
         setSelectedMonth(date);
         console.log("Selected Month:", date);
+    };
+    const exportToExcelDaily = () => {
+        if (revenueDataDayli.length === 0) {
+            alert("Không có dữ liệu để xuất Excel!");
+            return;
+        }
+
+        // Tạo một worksheet từ dữ liệu
+        const worksheet = XLSX.utils.json_to_sheet(revenueDataDayli);
+
+        // Tạo một workbook
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Doanh Thu");
+
+        // Xuất file Excel
+        const excelBuffer = XLSX.write(workbook, {bookType: "xlsx", type: "array"});
+        const data = new Blob([excelBuffer], {type: "application/octet-stream"});
+
+        // Tải file xuống
+        saveAs(data, `DoanhThu_${new Date().toISOString()}.xlsx`);
+    };
+
+    const exportToExcelMonthly = () => {
+        if (revenueDataDayli.length === 0) {
+            alert("Không có dữ liệu để xuất Excel!");
+            return;
+        }
+
+        // Tạo một worksheet từ dữ liệu
+        const worksheet = XLSX.utils.json_to_sheet(revenueDataDayli);
+
+        // Tạo một workbook
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Doanh Thu");
+
+        // Xuất file Excel
+        const excelBuffer = XLSX.write(workbook, {bookType: "xlsx", type: "array"});
+        const data = new Blob([excelBuffer], {type: "application/octet-stream"});
+
+        // Tải file xuống
+        saveAs(data, `DoanhThu_${new Date().toISOString()}.xlsx`);
     };
     return (
         <Container>
@@ -242,6 +287,13 @@ const AdminDashboard = () => {
                                         </option>
                                     ))}
                                 </select>
+                                {/* Nút xuất Excel */}
+                                {/*<button*/}
+                                {/*    className="btn btn-success"*/}
+                                {/*    onClick={exportToExcelMonthly}*/}
+                                {/*>*/}
+                                {/*    Xuất Excel*/}
+                                {/*</button>*/}
                             </div>
                             <Bar data={monthlyRevenueData}/>
                         </Card.Body>
@@ -259,6 +311,13 @@ const AdminDashboard = () => {
                                     showMonthYearPicker
                                     className="form-control w-auto"
                                 />
+                                {/* Nút xuất Excel */}
+                                {/*<button*/}
+                                {/*    className="btn btn-success"*/}
+                                {/*    onClick={exportToExcelDaily}*/}
+                                {/*>*/}
+                                {/*    Xuất Excel*/}
+                                {/*</button>*/}
                             </div>
                             <Bar data={dailyRevenueData}/>
 
@@ -267,64 +326,64 @@ const AdminDashboard = () => {
                 </Col>
             </Row>
 
-            <Row className="mt-4">
-                <Col md={6}>
-                    <Card>
-                        <Card.Body>
-                            <Card.Title>Danh sách thành viên mới</Card.Title>
-                            <Table striped bordered hover>
-                                <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Joined Date</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {newMembers.map((member) => (
-                                    <tr key={member.id}>
-                                        <td>{member.id}</td>
-                                        <td>{member.name}</td>
-                                        <td>{member.email}</td>
-                                        <td>{member.joinedDate}</td>
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </Table>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col md={6}>
-                    <Card>
-                        <Card.Body>
-                            <Card.Title>Danh sách đơn hàng mới</Card.Title>
-                            <Table striped bordered hover>
-                                <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    {/*<th>Order Number</th>*/}
-                                    {/*<th>Customer</th>*/}
-                                    <th>Total Amount</th>
-                                    <th>Date</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {newOrders.map((order) => (
-                                    <tr key={order.id}>
-                                        <td>{order.id}</td>
-                                        {/*<td>{order.orderNumber}</td>*/}
-                                        {/*<td>{order.customer}</td>*/}
-                                        <td>{order.totalAmount}</td>
-                                        <td>{order.date}</td>
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </Table>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
+            {/*<Row className="mt-4">*/}
+            {/*    <Col md={6}>*/}
+            {/*        <Card>*/}
+            {/*            <Card.Body>*/}
+            {/*                <Card.Title>Danh sách thành viên mới</Card.Title>*/}
+            {/*                <Table striped bordered hover>*/}
+            {/*                    <thead>*/}
+            {/*                    <tr>*/}
+            {/*                        <th>ID</th>*/}
+            {/*                        <th>Name</th>*/}
+            {/*                        <th>Email</th>*/}
+            {/*                        <th>Joined Date</th>*/}
+            {/*                    </tr>*/}
+            {/*                    </thead>*/}
+            {/*                    <tbody>*/}
+            {/*                    {newMembers.map((member) => (*/}
+            {/*                        <tr key={member.id}>*/}
+            {/*                            <td>{member.id}</td>*/}
+            {/*                            <td>{member.name}</td>*/}
+            {/*                            <td>{member.email}</td>*/}
+            {/*                            <td>{member.joinedDate}</td>*/}
+            {/*                        </tr>*/}
+            {/*                    ))}*/}
+            {/*                    </tbody>*/}
+            {/*                </Table>*/}
+            {/*            </Card.Body>*/}
+            {/*        </Card>*/}
+            {/*    </Col>*/}
+            {/*    <Col md={6}>*/}
+            {/*        <Card>*/}
+            {/*            <Card.Body>*/}
+            {/*                <Card.Title>Danh sách đơn hàng mới</Card.Title>*/}
+            {/*                <Table striped bordered hover>*/}
+            {/*                    <thead>*/}
+            {/*                    <tr>*/}
+            {/*                        <th>ID</th>*/}
+            {/*                        /!*<th>Order Number</th>*!/*/}
+            {/*                        /!*<th>Customer</th>*!/*/}
+            {/*                        <th>Total Amount</th>*/}
+            {/*                        <th>Date</th>*/}
+            {/*                    </tr>*/}
+            {/*                    </thead>*/}
+            {/*                    <tbody>*/}
+            {/*                    {newOrders.map((order) => (*/}
+            {/*                        <tr key={order.id}>*/}
+            {/*                            <td>{order.id}</td>*/}
+            {/*                            /!*<td>{order.orderNumber}</td>*!/*/}
+            {/*                            /!*<td>{order.customer}</td>*!/*/}
+            {/*                            <td>{order.totalAmount}</td>*/}
+            {/*                            <td>{order.date}</td>*/}
+            {/*                        </tr>*/}
+            {/*                    ))}*/}
+            {/*                    </tbody>*/}
+            {/*                </Table>*/}
+            {/*            </Card.Body>*/}
+            {/*        </Card>*/}
+            {/*    </Col>*/}
+            {/*</Row>*/}
         </Container>
     );
 };
